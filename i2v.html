@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#b3261e">
-<title>MM·H3 工作台 · 文生视频（T2V）</title>
+<title>MM·H3 工作台 · 图生视频（I2V）</title>
 <script>(function(){try{var s=localStorage.getItem('mmh3_shell');if(s)document.documentElement.setAttribute('data-shell',s);var t=localStorage.getItem('mmh3_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <link rel="stylesheet" href="assets/css/shared.css">
 </head>
@@ -64,7 +64,7 @@
 
 <div class="scrim" id="scrim"></div>
 
-<!-- 工作区：左提示词坞 + 中央舞台 + 右参数 -->
+<!-- 工作区：左提示词坞 + 中央舞台 + 右参数（帧模式 + 首/末帧槽位） -->
 <div class="workzone" id="workzone" data-od-id="workzone">
 
   <aside class="side side-l" id="sideL" data-component="script-sidebar" data-od-id="script-sidebar">
@@ -82,7 +82,7 @@
         <button class="coll-btn" id="collBtnL2" type="button" data-collapse="sideL" aria-label="折叠提示词侧栏" title="折叠" aria-expanded="false">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg>
         </button>
-        <span class="stag">PROMPT · T2V</span>
+        <span class="stag">PROMPT · I2V</span>
       </div>
       <div class="shot-now">
         <span class="no" id="shotNo">01</span>
@@ -91,7 +91,7 @@
       </div>
       <label class="label" for="promptInput">镜头提示词</label>
       <div class="prompt-box">
-        <textarea id="promptInput" placeholder="输入镜头提示词：画面内容、镜头运动、氛围、音效与配乐……（运镜由提示词驱动）"></textarea>
+        <textarea id="promptInput" placeholder="输入镜头提示词：以首/末帧图像为基础，描述画面运动、镜头、氛围与音效……"></textarea>
         <div class="dock-meta">
           <span class="count" id="charCount">0 字符</span>
           <button class="neg" type="button" title="本地轻量提示词优化（按官方提示词指南做规则/模板级优化），非 H3-Context-IR 官方等价物">＋ 指令优化（轻量）</button>
@@ -103,16 +103,16 @@
       </button>
       <div class="label">预设标签</div>
       <div class="presets">
-        <button class="preset" type="button">电影感 · 推近</button>
-        <button class="preset" type="button">赛博朋克 · 雨夜</button>
-        <button class="preset" type="button">延时 · 晨雾金顶</button>
-        <button class="preset" type="button">胶片颗粒 · 宽银幕</button>
+        <button class="preset" type="button">首帧起推 · 电影感</button>
+        <button class="preset" type="button">人物运镜 · 环绕</button>
+        <button class="preset" type="button">产品展示 · 慢推</button>
+        <button class="preset" type="button">场景延展 · 横移</button>
       </div>
-      <div class="foot-note">文生视频（T2V）只靠提示词生成：画面、镜头、音效与配乐写在同一段内。「指令优化」为本地轻量提示词增强，非 H3-Context-IR 官方等价物（未开源、仅官方 API）。</div>
+      <div class="foot-note">图生视频（I2V / FL2VA）以首帧、末帧或首尾帧图像为锚点生成运动；图像在右侧槽位上传，第 1 张作为首帧、第 2 张作为末帧（提交顺序由槽位决定）。<br>时间锚点写法：At 0.00s, &lt;Picture 1&gt; is fully referenced. 之后按 [Shot 1]...[Shot N] 分段描述时间与镜头。</div>
     </div>
   </aside>
 
-  <!-- 中央舞台预览（展示壳由首访选择 + 顶栏外观菜单控制） -->
+  <!-- 中央舞台预览 -->
   <main class="stage-area" id="stageArea" data-component="stage-canvas" data-od-id="stage-canvas" data-shell="theater">
     <div class="preview-shell" id="previewShell" data-mode="theater">
       <div class="curtain l"></div>
@@ -177,7 +177,7 @@
     </div>
   </main>
 
-  <!-- 右侧镜头参数 -->
+  <!-- 右侧镜头参数（帧模式 + 首/末帧槽位） -->
   <aside class="side side-r" id="sideR" data-component="params-sidebar" data-od-id="params-sidebar">
     <button class="edge-handle" id="edgeR" type="button" data-collapse="sideR" aria-label="折叠参数侧栏" title="折叠">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg>
@@ -188,10 +188,26 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>
         </button>
         镜头参数
-        <span class="stag">T2V · CAMERA</span>
+        <span class="stag">I2V · FL2VA</span>
       </div>
-      <div class="mode-engine" id="modeEngine"><span class="me-tag">FL2VA</span><span class="me-model">minimax_h3_fl2va_pruned_int8_convrot.safetensors · t2va</span></div>
+      <div class="mode-engine" id="modeEngine"><span class="me-tag">FL2VA</span><span class="me-model">minimax_h3_fl2va_pruned_int8_convrot.safetensors · fl2va</span></div>
+      <div class="p-row"><span class="k">帧模式</span><span class="v"><span class="seg on" data-value="first_frame">首帧</span><span class="seg" data-value="last_frame">末帧</span><span class="seg" data-value="first_last">首尾帧</span></span></div>
+      <div class="bridge-note" id="i2vNote">首帧模式：上传 1 张图作为首帧，模型生成后续画面。</div>
+      <div class="frame-slots">
+        <div class="fs-slot" id="fs-first">
+          <div class="fs-head"><span>首帧</span><span class="fs-tag">FIRST FRAME</span><span class="fs-state" id="fs-first-state"></span></div>
+          <div class="fs-thumb"><span class="fs-placeholder"><b>首帧 未上传</b><span>点击下方按钮上传</span></span></div>
+          <button class="fs-upload" type="button" data-slot="first">＋ 上传首帧图像</button>
+        </div>
+        <div class="fs-slot" id="fs-last">
+          <div class="fs-head"><span>末帧</span><span class="fs-tag">LAST FRAME</span><span class="fs-state" id="fs-last-state"></span></div>
+          <div class="fs-thumb"><span class="fs-placeholder"><b>末帧 未上传</b><span>点击下方按钮上传</span></span></div>
+          <button class="fs-upload" type="button" data-slot="last">＋ 上传末帧图像</button>
+        </div>
+        <input type="file" id="fsInput" accept="image/*" multiple style="display:none">
+      </div>
       <div class="p-row"><span class="k">画面比例</span><span class="v"><span class="seg on" data-value="16:9">16:9</span><span class="seg" data-value="21:9">21:9</span><span class="seg" data-value="4:3">4:3</span><span class="seg" data-value="1:1">1:1</span><span class="seg" data-value="3:4">3:4</span><span class="seg" data-value="9:16">9:16</span></span></div>
+      <div class="p-row"><span class="k">生成尺寸</span><span class="v"><span class="seg on" data-value="768p">768P 短边（默认）</span><span class="seg" data-value="follow_first">跟随首帧</span></span></div>
       <div class="p-row"><span class="k">分辨率</span><span class="v"><span class="seg on" data-value="768p">768P 短边</span><span class="res-px" id="resPx" title="按所选比例换算：短边 768 · 长边上限 1344 · 32 倍数对齐">16:9 → <b>1344×768</b></span><span class="seg disabled" data-value="2k" title="H3-Regenerate-2K 未开源，不可用">2K 重绘</span></span></div>
       <div class="p-row"><span class="k">时长</span><span class="v"><span class="seg on" data-value="8s">8s</span><span class="seg" data-value="4s">4s</span><span class="seg" data-value="10s">10s</span><span class="seg" data-value="15s">15s</span></span></div>
       <div class="p-row"><span class="k">种子</span><span class="v"><input type="text" id="seedInput" class="seed-in" inputmode="numeric" placeholder="留空=随机" title="固定噪声种子，留空则每次随机"><button class="seg" id="seedRand" type="button" title="生成随机种子">随机</button></span></div>
@@ -206,7 +222,7 @@
       <details class="model-block">
         <summary>模型清单 <span class="sp-sub">FL2VA / VAE</span></summary>
         <div class="model-body">
-          <div class="model-item"><span class="m-kind on">FL2VA · t2v</span><a href="https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/diffusion_models/minimax_h3_fl2va_pruned_int8_convrot.safetensors" target="_blank" rel="noopener">minimax_h3_fl2va_pruned_int8_convrot.safetensors</a></div>
+          <div class="model-item"><span class="m-kind on">FL2VA · i2v</span><a href="https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/diffusion_models/minimax_h3_fl2va_pruned_int8_convrot.safetensors" target="_blank" rel="noopener">minimax_h3_fl2va_pruned_int8_convrot.safetensors</a></div>
           <div class="model-item"><span class="m-kind">Text Encoder</span><a href="https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors" target="_blank" rel="noopener">qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors</a></div>
           <div class="model-item"><span class="m-kind">Video VAE</span><a href="https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_fp16.safetensors" target="_blank" rel="noopener">minimax_h3_video_vae_fp16.safetensors</a></div>
           <div class="model-item"><span class="m-kind">Audio VAE</span><a href="https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors" target="_blank" rel="noopener">minimax_h3_audio_vae_fp32.safetensors</a></div>
@@ -287,10 +303,10 @@
   </div>
 </div>
 
-<!-- 首访展示壳引导（shared.js 渲染内容，仅首次出现） -->
+<!-- 首访展示壳引导 -->
 <div class="shell-modal" id="shellModal"></div>
 
-<script>window.MMH3_PAGE={id:'t2v',file:'index.html',mode:'text'};</script>
+<script>window.MMH3_PAGE={id:'i2v',file:'i2v.html',mode:'first_frame'};</script>
 <script src="assets/js/shared.js"></script>
 </body>
 </html>
