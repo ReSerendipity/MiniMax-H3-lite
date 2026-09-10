@@ -21,7 +21,7 @@ jobs:
     # 阻断判定由 scripts/sast_gate.py 按 .ci/semgrep_baseline.json 棘轮执行：
     # ERROR 数高于基线（当前基线=1，即 shots.py 白名单校验的已确认可接受项）→ CI 变红。
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Semgrep Scan (JSON report)
         run: |
