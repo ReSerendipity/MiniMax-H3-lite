@@ -41,7 +41,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build-pre gate — verify compose bind-mount sources (R6/Q2, T6②)
         # 纯静态、无需权重：构建前确认 docker-compose.yml 的 5 个 bind-mount 源
