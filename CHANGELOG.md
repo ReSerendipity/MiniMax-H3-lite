@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.5.1](https://github.com/ReSerendipity/MiniMax-H3-lite/compare/v2.5.0...v2.5.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **compliance:** 移除 EsesImageCompare 违约 vendor 并随仓 Community License 全文（P0-2/P1-3） ([#39](https://github.com/ReSerendipity/MiniMax-H3-lite/issues/39)) ([fa67010](https://github.com/ReSerendipity/MiniMax-H3-lite/commit/fa67010dbe3001b2bce6dfdc4dcd00be895c28d5))
+
+
+### Documentation
+
+* **ci:** 修正 test.yml 中失效的迁移记录路径 ([#36](https://github.com/ReSerendipity/MiniMax-H3-lite/issues/36)) ([cebce45](https://github.com/ReSerendipity/MiniMax-H3-lite/commit/cebce451dee93eda1fd57c3b641f8b74da99c270))
+
 ## [2.5.0](https://github.com/ReSerendipity/MiniMax-H3-lite/compare/v2.4.1...v2.5.0) (2026-09-15)
 
 
