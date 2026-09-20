@@ -34,8 +34,9 @@
 - **在所有者本机打开 agent（当前环境）**：直接读仓库根 `AGENTS.md`，按其 §0 与索引进入
   `docs/agents/*` 执行；本 stub 只是它的仓库可见门面，不复述规则正文，避免双份漂移。
 - **在新克隆 / CI 干净检出上工作**：`AGENTS.md` 与 `docs/agents/` 不存在，属预期状态。
-  以 `README.md`（快速开始/测试）、`CONTRIBUTING.md`（开发循环/提交规范/红线）、
-  `docs/adr/*`（架构决策）、`docs/CODING_STANDARDS.md` 为行为依据；
+  以 `README.md`（快速开始/测试）、`docs/CODING_STANDARDS.md` §2（本地验证循环、提交规范、
+  红线）、`docs/adr/*`（架构决策）为行为依据；贡献流程与 DCO 以组织级贡献指南为准
+  （本仓不放根级 `CONTRIBUTING.md`，社区健康文件由 org 默认仓提供）；
   如需自进化契约，须先由所有者把本机治理文档随附，或显式引入公开版本——**agent 不得虚构其内容**。
 - **要修改契约本身**：改本机 `AGENTS.md` / `docs/agents/*` 并按其铁律 #5 递增自进化协议版本号、
   在 `docs/agents/REVISION_LOG.md` 追加记录；仅当本 stub 的路径表或本地属性口径变化时才改本文件。
