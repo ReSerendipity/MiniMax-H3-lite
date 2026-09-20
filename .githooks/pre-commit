@@ -2,6 +2,49 @@
 # 通用 pre-commit 分发器（无机器特定路径，可随仓库分发）。
 #   1) 仓库有 .pre-commit-config.yaml 且 pre-commit 框架可用 -> 交给框架
 #   2) 否则 -> 交给同目录的 pre-commit-lite（大文件/密钥/冲突标记 + 根目录守卫）
+# 0) 路径可移植性检查：阻止本机绝对路径入库（规则见 docs/CODING_STANDARDS.md 第 1 节）
+if [ -f scripts/check_no_hardcoded_paths.py ]; then
+    PY_BIN=""
+    for c in python python3; do
+        command -v "$c" >/dev/null 2>&1 && PY_BIN="$c" && break
+    done
+    if [ -n "$PY_BIN" ]; then
+        "$PY_BIN" scripts/check_no_hardcoded_paths.py
+        PATHPORT_RC=$?
+        if [ "$PATHPORT_RC" -ne 0 ]; then
+            if [ "$PATHPORT_RC" -eq 1 ]; then
+                echo "[pre-commit] 检测到本机绝对路径（C:\Users\... 等），提交已拒绝。绕过：git commit --no-verify" >&2
+            else
+                echo "[pre-commit] 路径可移植性检查脚本自身异常（退出码 $PATHPORT_RC，非检测到硬编码路径），提交已拒绝。请修复脚本或 git commit --no-verify 绕过" >&2
+            fi
+            exit 1
+        fi
+    fi
+fi
+# 完整性清单新鲜度：动了 backend/*.py 却没重算重签清单 -> 拒提交。
+# 漂移不只是 CI 红线：INTEGRITY_ENFORCE 默认 True 且 fail-closed，
+# 这种代码全新装出去会在启动自检处直接拒启。修复命令由 --check 打印。
+if git diff --cached --name-only --diff-filter=ACMRD | grep -q '^backend/.*\.py$'; then
+    PY_INT=""
+    for cand in ".venv/Scripts/python.exe" ".venv/bin/python"; do
+        [ -x "$cand" ] && PY_INT="$cand" && break
+    done
+    if [ -z "$PY_INT" ]; then
+        for c in python python3; do
+            command -v "$c" >/dev/null 2>&1 && PY_INT="$c" && break
+        done
+    fi
+    if [ -n "$PY_INT" ]; then
+        "$PY_INT" scripts/generate_integrity_manifest.py --check
+        INT_RC=$?
+        if [ "$INT_RC" -ne 0 ]; then
+            echo "[pre-commit] 完整性清单与 backend/ 代码不一致，提交已拒绝（修复见上方输出）。绕过：git commit --no-verify" >&2
+            exit 1
+        fi
+    else
+        echo "[pre-commit] 未找到 python 解释器，跳过完整性清单新鲜度检查" >&2
+    fi
+fi
 if [ -f .pre-commit-config.yaml ]; then
     PY=""
     for cand in ".venv/Scripts/python.exe" ".venv/bin/python"; do

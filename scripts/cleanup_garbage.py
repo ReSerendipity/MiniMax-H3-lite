@@ -8,13 +8,15 @@
 注意：--container 不会删除 volume（./data ./uploads ./outputs 是 bind-mount，挂载源
       在宿主机，本脚本不会动它们）；若要彻底重置，先 `docker compose down -v`。
 """
+import os
 import shutil
 import sqlite3
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
-BASE = Path(r"C:\Users\Doro\MiniMax-H3-lite")
+# DEV-ONLY 运维工具：默认指向本机仓库根；克隆到其他机器请用 MMH3_REPO_ROOT 覆盖
+BASE = Path(os.environ.get("MMH3_REPO_ROOT", r"C:\Users\Doro\MiniMax-H3-lite"))
 DB = BASE / "data" / "mmh3.db"
 UPLOADS = BASE / "uploads"
 ASSETS = BASE / "assets"
@@ -38,7 +40,7 @@ def clean_container(yes: bool) -> None:
     r = subprocess.run(  # nosec
         ["docker", "ps", "-a", "--filter", f"name={CONTAINER_NAME}",
          "--format", "{{.Names}}\t{{.State}}"],
-        capture_output=True, text=True, check=False,
+        capture_output=True, text=True, encoding="utf-8", errors="replace", check=False,
     )
     if CONTAINER_NAME not in r.stdout:
         print(f"\n[容器清理] {CONTAINER_NAME} 容器不存在，跳过")

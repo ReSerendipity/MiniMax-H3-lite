@@ -45,6 +45,11 @@
 # 治理文件自身固定 LF：防止 Windows checkout 转 CRLF 影响规则解析（2026-09-18）
 /.gitattributes text eol=lf
 /.mailmap text eol=lf
+# .gitignore 必须 byte-exact：Git for Windows 的 core.autocrlf=true 会把 LF blob
+# 物化成 CRLF 工作副本，而 git 的 ignore 解析器不会剥掉空行残留的裸 CR——那行会
+# 退化成匹配任意带尾斜杠路径的 catch-all 规则（已验证：
+# `git check-ignore -v -- nosuchdir/` 归因到 .gitignore:178）。eol=lf 阻止再归一化，
+# 使每条 ignore 规则保持字节精确。删除本行会静默恢复该 bug，勿当作冗余注释清理。
 /.gitignore text eol=lf
 
 # 无扩展名构建/清单文件固定 LF
