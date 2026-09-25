@@ -20,6 +20,17 @@ name: Release (tag-driven)
 on:
   push:
     tags: ["v*"]
+  # 仅为 build-assets 的干跑证据而加：本仓 release.yml 无 pull_request 触发时，
+  # PR 档完全不会执行发版链（而 workflow_dispatch 又要求文件先在默认分支存在，
+  # 合并前拿不到 run id —— 实测 HTTP 404 "workflow not found on the default branch"）。
+  # 加了它也只能验证 read-only 的构建侧：publish-release 由 dry_run 门控，PR 永不到达。
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - '.github/workflows/gpg-signed-release.yml'
+      - 'scripts/verify_release_integrity.py'
+      - 'CHANGELOG.md'
+      - 'package.json'
   workflow_dispatch:
     inputs:
       version:
@@ -57,6 +68,7 @@ jobs:
         id: prep
         env:
           REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
           EVENT: ${{ github.event_name }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
@@ -68,12 +80,24 @@ jobs:
           pkg=$(python3 -c "import json;print(json.load(open('package.json',encoding='utf-8'))['version'])")
           echo "package.json version = $pkg"
 
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            dry=true
+          # 【模式判定：默认干跑，只有"push 一个 v<数字> 的 tag"才是真发版】
+          # 刻意写成"白名单才是 real"而不是"非 dispatch 即 real"：本 workflow 现在也有
+          # pull_request 触发（只为构建侧证据），若按"非 dispatch 即 real"来判，
+          # PR 事件会直接落进真发版分支（REF_NAME 形如 123/merge），语义上等于
+          # "开个 PR 就可能发版" —— 必须结构性杜绝。
+          REF_KIND="${REF_TYPE:-}"
+          dry=true
+          if [ "$EVENT" = "push" ] && [ "$REF_KIND" = "tag" ]; then
+            case "$REF_NAME" in
+              v[0-9]*) dry=false ;;
+              *) echo "::warning::tag '$REF_NAME' 不是 v<数字> 形状，按 dry-run 处理（不发版）" ;;
+            esac
+          fi
+
+          if [ "$dry" = "true" ]; then
             ver="${INPUT_VERSION:-$pkg}"
-            echo "dry-run 模式（dispatch）：版本=$ver，只构建产物，不建 Release、不推 tag"
+            echo "dry-run 模式（event=$EVENT ref=$REF_NAME）：版本=$ver，只构建产物，不建 Release、不推 tag"
           else
-            dry=false
             ver="${REF_NAME#v}"
             echo "真发版模式：tag=$REF_NAME"
             # 唯一的同步位就是 package.json（backend/version.py 运行时读它），
